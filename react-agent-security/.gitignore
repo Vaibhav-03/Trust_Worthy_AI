@@ -1,0 +1,25 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables (never commit secrets)
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Logs (runtime output, not source)
+logs/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

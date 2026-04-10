@@ -1,0 +1,5 @@
+This is a sample file for the ReAct agent file reader tool.
+It contains placeholder text for testing purposes.
+
+Project: ReAct Agent Security Research
+Phase: 1 — Baseline Agent
