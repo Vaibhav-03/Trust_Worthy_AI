@@ -13,6 +13,6 @@ SYSTEM_PROMPT = (
 
 
 def build_agent():
-    llm = ChatGroq(model="llama3-8b-8192", temperature=0)
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
     agent = create_react_agent(llm, ALL_TOOLS, prompt=SYSTEM_PROMPT)
     return agent

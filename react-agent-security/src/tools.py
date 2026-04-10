@@ -2,10 +2,11 @@ import json
 import os
 from datetime import datetime, timezone
 
+from dotenv import load_dotenv
 from langchain_core.tools import tool
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
 
-_tavily = TavilySearchResults(max_results=3)
+load_dotenv()
 
 
 @tool
@@ -28,16 +29,22 @@ def web_search(query: str) -> str:
     Input: a search query string.
     Output: top 3 search results with titles, URLs, and snippets.
     """
-    results = _tavily.invoke(query)
+    tavily = TavilySearch(max_results=3)
+    results = tavily.invoke(query)
     if not results:
         return "No results found."
+    if isinstance(results, str):
+        return results
     parts = []
     for r in results:
-        parts.append(
-            f"Title: {r.get('title', '')}\n"
-            f"URL: {r.get('url', '')}\n"
-            f"Content: {r.get('content', '')}"
-        )
+        if isinstance(r, dict):
+            parts.append(
+                f"Title: {r.get('title', '')}\n"
+                f"URL: {r.get('url', '')}\n"
+                f"Content: {r.get('content', '')}"
+            )
+        else:
+            parts.append(str(r))
     return "\n\n".join(parts)
 
 
