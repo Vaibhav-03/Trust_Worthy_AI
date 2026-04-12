@@ -30,11 +30,18 @@ def web_search(query: str) -> str:
     Output: top 3 search results with titles, URLs, and snippets.
     """
     tavily = TavilySearch(max_results=3)
-    results = tavily.invoke(query)
+    response = tavily.invoke(query)
+    if not response:
+        return "No results found."
+    if isinstance(response, str):
+        return response
+    # TavilySearch returns a dict with a "results" key containing the list
+    if isinstance(response, dict):
+        results = response.get("results", [])
+    else:
+        results = response
     if not results:
         return "No results found."
-    if isinstance(results, str):
-        return results
     parts = []
     for r in results:
         if isinstance(r, dict):

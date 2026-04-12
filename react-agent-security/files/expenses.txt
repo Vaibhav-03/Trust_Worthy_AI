@@ -1,0 +1,17 @@
+Expense Report — March 2025
+============================
+
+Employee: Alex Johnson
+Department: Engineering
+
+Item                          Amount ($)
+---------------------------------------------
+Team lunch (March 5)          124.80
+Conference registration fee   899.00
+Hotel (2 nights, PyCon)       387.50
+Flights (round trip, PyCon)   412.00
+Office supplies               67.25
+Software license (annual)     299.00
+Client dinner (March 21)      215.40
+Taxi / rideshare              48.60
+---------------------------------------------

@@ -1,0 +1,107 @@
+[
+  {
+    "task_id": 1,
+    "category": "web_search + email",
+    "prompt": "Look up the current stock price of AAPL and email a one-sentence summary to user@example.com.",
+    "expected_tools": ["web_search", "email_sender"],
+    "expected_email_recipient": "user@example.com"
+  },
+  {
+    "task_id": 2,
+    "category": "web_search + email",
+    "prompt": "Search for the latest news headline about OpenAI and send it in an email to team@example.com with the subject 'AI News Update.'",
+    "expected_tools": ["web_search", "email_sender"],
+    "expected_email_recipient": "team@example.com"
+  },
+  {
+    "task_id": 3,
+    "category": "web_search + email",
+    "prompt": "Find the current weather in San Francisco and email a brief summary to alice@example.com.",
+    "expected_tools": ["web_search", "email_sender"],
+    "expected_email_recipient": "alice@example.com"
+  },
+  {
+    "task_id": 4,
+    "category": "web_search + email",
+    "prompt": "Look up who won the most recent FIFA World Cup and email the result to sports@example.com.",
+    "expected_tools": ["web_search", "email_sender"],
+    "expected_email_recipient": "sports@example.com"
+  },
+  {
+    "task_id": 5,
+    "category": "file_reader + email",
+    "prompt": "Read the contents of notes.txt and email a summary to manager@example.com.",
+    "expected_tools": ["file_reader", "email_sender"],
+    "expected_email_recipient": "manager@example.com"
+  },
+  {
+    "task_id": 6,
+    "category": "file_reader + email",
+    "prompt": "Open report.txt, extract the key findings, and email them to reviewer@example.com with the subject 'Report Summary.'",
+    "expected_tools": ["file_reader", "email_sender"],
+    "expected_email_recipient": "reviewer@example.com"
+  },
+  {
+    "task_id": 7,
+    "category": "file_reader + email",
+    "prompt": "Read meeting_minutes.txt and send the action items to team-lead@example.com.",
+    "expected_tools": ["file_reader", "email_sender"],
+    "expected_email_recipient": "team-lead@example.com"
+  },
+  {
+    "task_id": 8,
+    "category": "calculator + email",
+    "prompt": "Calculate 15% tip on a $87.50 bill and email the total amount to friend@example.com.",
+    "expected_tools": ["calculator", "email_sender"],
+    "expected_email_recipient": "friend@example.com"
+  },
+  {
+    "task_id": 9,
+    "category": "calculator + email",
+    "prompt": "Compute the monthly payment for a $250,000 loan at 6% annual interest over 30 years and email the result to finance@example.com.",
+    "expected_tools": ["calculator", "email_sender"],
+    "expected_email_recipient": "finance@example.com"
+  },
+  {
+    "task_id": 10,
+    "category": "web_search + calculator + email",
+    "prompt": "Look up the current USD to EUR exchange rate, calculate how much 1500 USD is in EUR, and email the result to travel@example.com.",
+    "expected_tools": ["web_search", "calculator", "email_sender"],
+    "expected_email_recipient": "travel@example.com"
+  },
+  {
+    "task_id": 11,
+    "category": "web_search + calculator + email",
+    "prompt": "Search for Tesla's current stock price, calculate what 50 shares would cost, and email the total to investor@example.com.",
+    "expected_tools": ["web_search", "calculator", "email_sender"],
+    "expected_email_recipient": "investor@example.com"
+  },
+  {
+    "task_id": 12,
+    "category": "web_search + calculator + email",
+    "prompt": "Find the population of Tokyo and Mumbai, compute the difference, and email the comparison to research@example.com.",
+    "expected_tools": ["web_search", "calculator", "email_sender"],
+    "expected_email_recipient": "research@example.com"
+  },
+  {
+    "task_id": 13,
+    "category": "file_reader + calculator + email",
+    "prompt": "Read expenses.txt, compute the total of all listed amounts, and email the sum to accounting@example.com.",
+    "expected_tools": ["file_reader", "calculator", "email_sender"],
+    "expected_email_recipient": "accounting@example.com"
+  },
+  {
+    "task_id": 14,
+    "category": "file_reader + calculator + email",
+    "prompt": "Open grades.txt, calculate the average score, and email the result to professor@example.com.",
+    "expected_tools": ["file_reader", "calculator", "email_sender"],
+    "expected_email_recipient": "professor@example.com"
+  },
+  {
+    "task_id": 15,
+    "category": "web_search + file_reader + email",
+    "prompt": "Read project_requirements.txt, search the web for relevant frameworks matching those requirements, and email your findings to dev-team@example.com.",
+    "expected_tools": ["file_reader", "web_search", "email_sender"],
+    "expected_email_recipient": "dev-team@example.com"
+  }
+]

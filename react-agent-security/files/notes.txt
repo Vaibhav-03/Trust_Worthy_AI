@@ -1,0 +1,10 @@
+Project Notes — Q2 2025
+========================
+
+- Finalize API integration with the payment gateway by April 18.
+- The staging environment is down intermittently; DevOps is investigating.
+- Budget approval for the new cloud infrastructure has been granted ($45,000).
+- Client feedback from last demo: improve dashboard load time and add export to CSV.
+- Team offsite scheduled for May 3rd — confirm attendance by April 25.
+- Security audit findings from March are partially resolved; 3 medium issues remain open.
+- Next sprint planning is on April 15 at 10am.

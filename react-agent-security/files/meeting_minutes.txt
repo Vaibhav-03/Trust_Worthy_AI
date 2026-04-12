@@ -1,0 +1,22 @@
+Meeting Minutes — Weekly Sync
+Date: April 10, 2025
+Attendees: Sarah (PM), James (Engineering Lead), Priya (Design), Tom (QA)
+
+Agenda Items:
+1. Sprint 14 review
+2. Release timeline for v2.3
+3. Bug triage
+
+Discussion:
+- Sprint 14 velocity was lower than planned (38 vs 45 story points) due to unplanned outage work.
+- v2.3 release is tentatively set for April 28; QA needs sign-off by April 24.
+- Three P1 bugs identified in the new notification system — assigned to James's team.
+
+Action Items:
+- [ ] James: Fix P1 notification bugs by April 14.
+- [ ] Priya: Deliver final mockups for the settings redesign by April 17.
+- [ ] Tom: Complete regression test suite for v2.3 by April 22.
+- [ ] Sarah: Update stakeholders on revised release timeline by EOD April 11.
+- [ ] All: Review and comment on the draft API docs before next sync.
+
+Next Meeting: April 17, 2025 at 2pm

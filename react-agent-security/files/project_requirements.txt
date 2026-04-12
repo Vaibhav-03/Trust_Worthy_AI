@@ -1,0 +1,25 @@
+Project: Intelligent Document Processing Pipeline
+Version: 1.0 — Requirements Specification
+
+Overview:
+Build a backend pipeline that ingests PDFs, extracts structured data, and exposes results via REST API.
+
+Functional Requirements:
+1. Parse and extract text from PDF and DOCX files.
+2. Identify and extract named entities (people, dates, monetary values, organizations).
+3. Classify documents into predefined categories (invoice, contract, report, other).
+4. Store extracted data in a structured format (JSON or database).
+5. Expose a REST API with endpoints for upload, status, and result retrieval.
+6. Support asynchronous processing for large documents (>50 pages).
+
+Technical Constraints:
+- Language: Python 3.10+
+- Must support deployment via Docker.
+- API response time < 500ms for status/result endpoints.
+- Extraction pipeline must handle up to 100 concurrent documents.
+- No proprietary/closed-source ML models — open-source only.
+
+Non-Functional Requirements:
+- Logging and monitoring for all pipeline stages.
+- Unit test coverage > 80%.
+- Documentation for all public API endpoints (OpenAPI/Swagger).

@@ -1,0 +1,23 @@
+Course: CS 489 — Machine Learning Systems
+Semester: Spring 2025
+Instructor: Prof. R. Chen
+
+Student Grades (Final Exam Scores out of 100):
+------------------------------------------------
+Student ID    Score
+A001          87
+A002          92
+A003          74
+A004          68
+A005          95
+A006          81
+A007          76
+A008          89
+A009          63
+A010          91
+A011          84
+A012          77
+A013          70
+A014          93
+A015          88
+------------------------------------------------

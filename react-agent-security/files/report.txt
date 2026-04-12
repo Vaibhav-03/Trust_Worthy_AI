@@ -1,0 +1,21 @@
+Q1 2025 Performance Report
+===========================
+
+Executive Summary:
+Revenue grew 12% QoQ, driven primarily by enterprise tier subscriptions.
+
+Key Findings:
+1. Customer acquisition cost (CAC) decreased from $340 to $295 — a 13% improvement.
+2. Monthly active users (MAU) reached 48,200, up from 41,000 in Q4 2024.
+3. Churn rate held steady at 2.1%, below the 2.5% industry benchmark.
+4. Net Promoter Score (NPS) improved from 42 to 57 following the UX redesign.
+5. Infrastructure costs increased 8% due to expanded data storage requirements.
+
+Risks:
+- Competitor X launched a comparable product at 20% lower price point in March.
+- Two key engineers on the platform team have given notice; backfilling is urgent.
+
+Recommendations:
+- Invest in automated onboarding to reduce CAC further.
+- Explore tiered storage pricing to offset infrastructure cost growth.
+- Accelerate hiring for the platform team (target: 2 hires by end of May).
