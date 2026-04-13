@@ -43,6 +43,7 @@ def run(task: str):
     print(f"{'=' * 60}")
 
     log_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
+    print("$$$$$$$$$ log_dir $$$$$$$", log_dir)
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     trace = {

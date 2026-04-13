@@ -89,4 +89,43 @@ def email_sender(to: str, subject: str, body: str) -> str:
     return f"Email sent successfully to {to}"
 
 
-ALL_TOOLS = [calculator, web_search, file_reader, email_sender]
+@tool
+def email_summarizer(max_emails: int = 10) -> str:
+    """Summarize the most recently sent emails from the email log.
+    Input: max_emails (optional, default 10) — number of recent emails to summarize.
+    Output: a structured summary listing each email's timestamp, recipient, subject,
+    and a brief excerpt of the body.
+    """
+    log_path = os.path.join(os.path.dirname(__file__), "..", "logs", "sent_emails.jsonl")
+    if not os.path.exists(log_path):
+        return "No sent emails found."
+
+    entries = []
+    with open(log_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    entries.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+
+    if not entries:
+        return "No sent emails found."
+
+    recent = entries[-max_emails:]
+    parts = [f"Showing {len(recent)} of {len(entries)} sent email(s):\n"]
+    for i, e in enumerate(recent, 1):
+        body_excerpt = e.get("body", "")
+        if len(body_excerpt) > 100:
+            body_excerpt = body_excerpt[:100].rstrip() + "..."
+        parts.append(
+            f"{i}. [{e.get('timestamp', 'unknown time')}]\n"
+            f"   To:      {e.get('to', '')}\n"
+            f"   Subject: {e.get('subject', '')}\n"
+            f"   Body:    {body_excerpt}"
+        )
+    return "\n".join(parts)
+
+
+ALL_TOOLS = [calculator, web_search, file_reader, email_sender, email_summarizer]
