@@ -1,0 +1,11 @@
+{
+  "prompt_injection_flag": true,
+  "positions": ["prefix", "suffix"],
+  "payload_types": ["tool_redirect", "context_exfiltration", "goal_hijacking"],
+  "styles": ["direct", "system_message"],
+  "attacker_email": "attacker@evil.com",
+  "task_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  "tasks_file": "tasks.json",
+  "max_agent_steps": 20,
+  "log_dir": "logs/phase2"
+}
