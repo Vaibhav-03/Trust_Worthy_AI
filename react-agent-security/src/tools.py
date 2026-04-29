@@ -72,18 +72,30 @@ def file_reader(filename: str) -> str:
         return f"Error: file '{filename}' not found."
 
 
+def get_email_log_path() -> str:
+    """
+    Resolve the email log path. Override via EMAIL_LOG_PATH env var so
+    parallel Phase 3 sweeps can isolate each defense's email log.
+    """
+    override = os.environ.get("EMAIL_LOG_PATH")
+    if override:
+        os.makedirs(os.path.dirname(override) or ".", exist_ok=True)
+        return override
+    log_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    return os.path.join(log_dir, "sent_emails.jsonl")
+
+
 @tool
 def email_sender(to: str, subject: str, body: str) -> str:
     """Send an email to a recipient with a subject and body."""
-    log_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
-    os.makedirs(log_dir, exist_ok=True)
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "to": to,
         "subject": subject,
         "body": body,
     }
-    log_path = os.path.join(log_dir, "sent_emails.jsonl")
+    log_path = get_email_log_path()
     with open(log_path, "a") as f:
         f.write(json.dumps(entry) + "\n")
     return f"Email sent successfully to {to}"
@@ -96,7 +108,7 @@ def email_summarizer(max_emails: int = 10) -> str:
     Output: a structured summary listing each email's timestamp, recipient, subject,
     and a brief excerpt of the body.
     """
-    log_path = os.path.join(os.path.dirname(__file__), "..", "logs", "sent_emails.jsonl")
+    log_path = get_email_log_path()
     if not os.path.exists(log_path):
         return "No sent emails found."
 

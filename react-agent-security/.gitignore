@@ -5,6 +5,8 @@ env/
 
 # Environment variables (never commit secrets)
 .env
+../.env
+../.claude/
 
 # Python cache
 __pycache__/
