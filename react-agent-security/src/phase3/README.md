@@ -6,7 +6,7 @@ Phase 3 introduces a multi-layered defense-in-depth architecture to protect the 
 
 ## 1. Overview
 
-Phase 3 transitions from vulnerability assessment to mitigation. The experiment evaluates seven defense configurations (including a baseline and a combined stack) against the same 180-trial adversarial matrix used in Phase 2. This phase also introduces a "clean baseline" suite to calculate the **False-Positive Rate (FPR)**, ensuring that defenses do not break legitimate agent functionality.
+Phase 3 transitions from vulnerability assessment to mitigation. The experiment evaluates seven defense configurations (including a baseline and a combined stack) against the same 180-trial adversarial matrix used in Phase 2 plus a clean baseline of 15 trials per defense to measure the False-Positive Rate (FPR).
 
 ---
 
