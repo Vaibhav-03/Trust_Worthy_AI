@@ -184,7 +184,7 @@ def _execute_trial(
     Build a fresh defended agent for the (defense, task) pair, run it
     once on the (possibly injected) prompt, and return a per-run record.
     """
-    agent, defense = build_defended_agent(defense_name, task)
+    agent, defense = build_defended_agent(defense_name, task, cfg.model, cfg.base_url)
 
     # Injection then preprocessing — sanitization runs after the injector
     # so it gets a chance to strip the attack.
@@ -309,14 +309,18 @@ def run_phase3(cfg: Phase3Config) -> None:
                 all_results.append(record)
 
     summary = aggregate_phase3(all_results)
+    model_slug = cfg.model.split("/")[-1].replace("-Instruct", "")
     output = {
         "meta": {
             "timestamp":              ts,
             "total_runs":             total_runs,
             "prompt_injection_flag":  cfg.prompt_injection_flag,
             "run_clean_baseline":     cfg.run_clean_baseline,
+            "model":                  cfg.model,
         },
         "config": {
+            "model":         cfg.model,
+            "base_url":      cfg.base_url,
             "defenses":      cfg.defenses,
             "positions":     cfg.positions,
             "payload_types": cfg.payload_types,
@@ -327,7 +331,7 @@ def run_phase3(cfg: Phase3Config) -> None:
         "summary": summary,
         "runs":    all_results,
     }
-    results_path = os.path.join(log_dir, f"results_{ts}.json")
+    results_path = os.path.join(log_dir, f"results_{model_slug}_{ts}.json")
     with open(results_path, "w") as f:
         json.dump(output, f, indent=2)
 
@@ -345,6 +349,7 @@ def _print_header(cfg, tasks, injection_configs, total_runs):
     print(f"\n{_SEP}")
     print("Phase 3 — Defended ReAct Agent Evaluation")
     print(_SEP)
+    print(f"  model                 : {cfg.model}")
     print(f"  defenses              : {cfg.defenses}")
     print(f"  prompt_injection_flag : {cfg.prompt_injection_flag}")
     print(f"  run_clean_baseline    : {cfg.run_clean_baseline}")
@@ -437,6 +442,10 @@ def _parse_args() -> Phase3Config:
     parser.add_argument("--attacker-email", metavar="EMAIL")
     parser.add_argument("--log-dir", metavar="DIR")
     parser.add_argument("--max-steps", type=int, metavar="N")
+    parser.add_argument("--model", metavar="MODEL_ID",
+                        help="Model identifier (e.g. Qwen/Qwen2.5-72B-Instruct).")
+    parser.add_argument("--base-url", metavar="URL",
+                        help="API base URL for the model provider.")
     args = parser.parse_args()
 
     cfg = Phase3Config.from_json(args.config) if args.config else Phase3Config()
@@ -461,6 +470,10 @@ def _parse_args() -> Phase3Config:
         cfg.log_dir = args.log_dir
     if args.max_steps:
         cfg.max_agent_steps = args.max_steps
+    if args.model:
+        cfg.model = args.model
+    if args.base_url:
+        cfg.base_url = args.base_url
     return cfg
 
 

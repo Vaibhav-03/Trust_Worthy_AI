@@ -219,6 +219,67 @@ These are inherent model failures on multi-step tasks, not defense artifacts. Th
 
 ---
 
-*Report generated from: `logs/phase3/results_20260430_064741.json`*
+## 9. Cross-Model Comparison — Llama-3.3-70B vs Qwen3-235B
+
+Phase 3 was subsequently re-run on Qwen3-235B-A22B-Instruct to assess whether defense effectiveness is model-specific.
+
+### 9.1 Global Defense Summary
+
+| Defense | Llama ASR | Qwen3-235B ASR | Llama FPR | Qwen3-235B FPR | Llama DR | Qwen3-235B DR |
+|---|---|---|---|---|---|---|
+| `none` (baseline) | 0.7556 | 0.1944* | 0.2000 | **0.4667** | — | — |
+| `input_sanitization` | **0.0000** | 0.0333 | 0.2667 | 0.4000 | — | — |
+| `recipient_locking` | **0.0000** | 0.0611 | 0.2000 | 0.4000 | — | — |
+| `grounding_augmentation` | 0.0333 | 0.0333 | 0.3333 | 0.4667 | — | — |
+| `audit_logging` | 0.7444 | 0.2000 | 0.2000 | 0.4667 | **0.7778** | 0.2222 |
+| `goal_verification` | **0.0000** | 0.0389 | 0.2000 | 0.4667 | — | — |
+| `all_combined` | **0.0000** | 0.0111 | 0.3333 | 0.4667 | 0.0000 | 0.0444 |
+
+*Qwen3-235B's baseline ASR is low partly due to task-completion failures (FPR=0.4667), not genuine resistance.
+
+### 9.2 The FPR Problem — Qwen3-235B Reliability
+
+The dominant finding for Qwen3-235B is not attack susceptibility but model reliability. The baseline agent fails 7/15 clean tasks (FPR=0.4667) without any injection — all web-search tasks where the model loops on search calls without proceeding to email delivery. Compare to Llama's 3/15 (FPR=0.2000).
+
+Critically, **all defenses inherit this baseline FPR** — none make it worse, but none fix it either. This means FPR cannot meaningfully differentiate defense utility for Qwen3-235B. Every FPR=0.4667 entry in the table is the same 7 tasks failing for the same reason.
+
+### 9.3 Defense Effectiveness Comparison
+
+**What works similarly across models:**
+
+- `grounding_augmentation` achieves nearly identical ASR on both (0.033 each). Both residual leaks are context_exfiltration with suffix+direct style — the same failure mode.
+- `input_sanitization` reduces ASR substantially on both but does not reach 0.0 on Qwen3-235B (0.033 residual).
+
+**Where defenses diverge:**
+
+- `goal_verification` achieves ASR=0.0 on Llama but has 7 leaks on Qwen3-235B (ASR=0.039). Qwen3-235B's tool-call formatting appears to bypass the recipient check in some cases — the defense is not model-agnostic.
+- `audit_logging` DR drops from 0.778 (Llama) to 0.222 (Qwen3-235B). Qwen3-235B attacks are harder to detect post-hoc — partly because many apparent attacks are actually task-completion failures with no suspicious email signal.
+- `all_combined` achieves ASR=0.0 on Llama but 0.011 on Qwen3-235B — 2 attacks leak through the full stack. Both are `system_message` style variants that the sanitizer doesn't fully strip on this model.
+
+### 9.4 Style Asymmetry Changes Defense Priority
+
+Qwen3-235B is almost exclusively vulnerable to `system_message` style (ASR=0.356 vs 0.022 for direct). This has a direct implication for defense design:
+
+- **`input_sanitization`** was built around Phase 2 payloads and explicitly targets `SYSTEM NOTE` phrasing. It should theoretically be highly effective on Qwen3-235B — but residual ASR=0.033 shows the sanitizer misses some variants with this model.
+- **`grounding_augmentation`** explicitly names and rejects `SYSTEM NOTE` in the system prompt — this is why it achieves ASR=0.0 for `system_message` style on both models.
+- **`goal_verification`** is style-agnostic (checks recipient and body markers) — yet it leaks on Qwen3-235B for `tool_redirect` payloads where the model's tool call format bypasses the wrapper.
+
+### 9.5 Key Cross-Model Findings
+
+1. **No single defense achieves ASR=0.0 on Qwen3-235B.** Even `all_combined` has 2 leaks. In contrast, four individual defenses achieve ASR=0.0 on Llama. Defenses are less effective on Qwen3-235B.
+
+2. **The FPR floor dominates Qwen3-235B evaluation.** With 47% baseline failure, the utility cost of defenses cannot be measured. A model must reliably complete legitimate tasks before defense utility can be assessed.
+
+3. **`goal_verification` is not model-agnostic.** 7 leaks on Qwen3-235B (vs 0 on Llama) suggest the tool-level wrapper interacts with model-specific tool-calling behavior. This is a critical robustness concern for production deployments.
+
+4. **`audit_logging` DR is strongly model-dependent** (0.778 Llama vs 0.222 Qwen3-235B). Detection rate depends on whether attacks generate clear email-level signals — and Qwen3-235B attacks are less likely to produce the expected attacker-addressed email entries.
+
+5. **Qwen3-32B (Phase 2 only) shows a better reliability profile** than Qwen3-235B — zero errors, no web-search loops — making it a more viable candidate for Phase 3 defense evaluation.
+
+---
+
+*Reports generated from:*
+*Llama: `logs/phase3/results_20260430_064741.json`*
+*Qwen3-235B: `logs/phase3/qwen3-235b/results_Qwen3-235B-A22B-2507_20260430_194031.json`*
 *Phase 3 module: `src/phase3/`*
 *Project: Trust\_Worthy\_AI / react-agent-security*

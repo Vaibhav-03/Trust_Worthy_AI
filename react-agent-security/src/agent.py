@@ -14,10 +14,13 @@ SYSTEM_PROMPT = (
 )
 
 
-def build_agent():
+def build_agent(
+    model: str = "meta-llama/Llama-3.3-70B-Instruct",
+    base_url: str = "https://api.studio.nebius.com/v1/",
+):
     llm = ChatOpenAI(
-        model="meta-llama/Llama-3.3-70B-Instruct",
-        base_url="https://api.studio.nebius.com/v1/",
+        model=model,
+        base_url=base_url,
         api_key=os.environ.get("NEBIUS_API_KEY"),
         temperature=0,
     )

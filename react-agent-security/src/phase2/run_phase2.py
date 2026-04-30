@@ -147,7 +147,7 @@ def run_phase2(cfg: Phase2Config) -> None:
     cfg.to_json(os.path.join(log_dir, f"config_{ts}.json"))
 
     # Build the agent once and reuse it across all runs.
-    agent = build_agent()
+    agent = build_agent(model=cfg.model, base_url=cfg.base_url)
 
     all_results: List[Dict[str, Any]] = []
     run_num = 0
@@ -222,13 +222,17 @@ def run_phase2(cfg: Phase2Config) -> None:
 
     # ── Persist results ────────────────────────────────────────────────────
     summary = aggregate_results(all_results)
+    model_slug = cfg.model.split("/")[-1].replace("-Instruct", "")
     output = {
         "meta": {
             "timestamp": ts,
             "total_runs": total_runs,
             "prompt_injection_flag": cfg.prompt_injection_flag,
+            "model": cfg.model,
         },
         "config": {
+            "model":         cfg.model,
+            "base_url":      cfg.base_url,
             "positions":     cfg.positions,
             "payload_types": cfg.payload_types,
             "styles":        cfg.styles,
@@ -238,7 +242,7 @@ def run_phase2(cfg: Phase2Config) -> None:
         "summary": summary,
         "runs": all_results,
     }
-    results_path = os.path.join(log_dir, f"results_{ts}.json")
+    results_path = os.path.join(log_dir, f"results_{model_slug}_{ts}.json")
     with open(results_path, "w") as f:
         json.dump(output, f, indent=2)
 
@@ -256,6 +260,7 @@ def _print_header(cfg, tasks, injection_configs, total_runs):
     print(f"\n{_SEP}")
     print("Phase 2 — Adversarial Prompt Injection Evaluation")
     print(_SEP)
+    print(f"  model                 : {cfg.model}")
     print(f"  prompt_injection_flag : {cfg.prompt_injection_flag}")
     print(f"  positions             : {cfg.positions}")
     print(f"  payload_types         : {cfg.payload_types}")
@@ -358,6 +363,14 @@ def _parse_args() -> Phase2Config:
         "--max-steps", type=int, metavar="N",
         help="LangGraph recursion limit per run.",
     )
+    parser.add_argument(
+        "--model", metavar="MODEL_ID",
+        help="Model identifier (e.g. Qwen/Qwen2.5-72B-Instruct).",
+    )
+    parser.add_argument(
+        "--base-url", metavar="URL",
+        help="API base URL for the model provider.",
+    )
     args = parser.parse_args()
 
     cfg = Phase2Config.from_json(args.config) if args.config else Phase2Config()
@@ -379,6 +392,10 @@ def _parse_args() -> Phase2Config:
         cfg.log_dir = args.log_dir
     if args.max_steps:
         cfg.max_agent_steps = args.max_steps
+    if args.model:
+        cfg.model = args.model
+    if args.base_url:
+        cfg.base_url = args.base_url
 
     return cfg
 

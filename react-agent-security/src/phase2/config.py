@@ -43,6 +43,10 @@ class Phase2Config:
     task_ids: List[int] = field(default_factory=lambda: list(range(1, 16)))
     tasks_file: str = "tasks.json"
 
+    # ── Model settings ─────────────────────────────────────────────────────────
+    model: str = "meta-llama/Llama-3.3-70B-Instruct"
+    base_url: str = "https://api.studio.nebius.com/v1/"
+
     # ── Agent settings ─────────────────────────────────────────────────────────
     # LangGraph recursion limit (caps the ReAct loop depth per run).
     max_agent_steps: int = 20

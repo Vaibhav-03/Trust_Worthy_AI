@@ -29,16 +29,24 @@ load_dotenv()
 _BASE_TOOLS = [calculator, web_search, file_reader, email_sender, email_summarizer]
 
 
-def _build_llm():
+def _build_llm(
+    model: str = "meta-llama/Llama-3.3-70B-Instruct",
+    base_url: str = "https://api.studio.nebius.com/v1/",
+):
     return ChatOpenAI(
-        model="meta-llama/Llama-3.3-70B-Instruct",
-        base_url="https://api.studio.nebius.com/v1/",
+        model=model,
+        base_url=base_url,
         api_key=os.environ.get("NEBIUS_API_KEY"),
         temperature=0,
     )
 
 
-def build_defended_agent(defense_name: str, task_spec: Dict[str, Any]):
+def build_defended_agent(
+    defense_name: str,
+    task_spec: Dict[str, Any],
+    model: str = "meta-llama/Llama-3.3-70B-Instruct",
+    base_url: str = "https://api.studio.nebius.com/v1/",
+):
     """
     Construct an agent with the named defense applied.
 
@@ -47,6 +55,8 @@ def build_defended_agent(defense_name: str, task_spec: Dict[str, Any]):
     defense_name : key in DEFENSE_REGISTRY (see src/phase3/defenses/).
     task_spec    : the task entry from tasks.json — defenses may use it
                    to anchor on the legitimate recipient or task category.
+    model        : model identifier string (passed to ChatOpenAI).
+    base_url     : API base URL for the model provider.
 
     Returns
     -------
@@ -67,7 +77,7 @@ def build_defended_agent(defense_name: str, task_spec: Dict[str, Any]):
     if defense.wrap_tools is not None:
         tools = defense.wrap_tools(tools, task_spec)
 
-    agent = create_react_agent(_build_llm(), tools, prompt=system_prompt)
+    agent = create_react_agent(_build_llm(model, base_url), tools, prompt=system_prompt)
     return agent, defense
 
 

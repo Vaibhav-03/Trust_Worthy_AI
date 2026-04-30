@@ -127,7 +127,7 @@ The baseline agent itself fails 20% of clean tasks (Tasks 5, 12, 14) due to inhe
 | `grounding_augmentation` | 0.3333 | +0.1333 |
 | `all_combined` | 0.3333 | +0.1333 |
 
-### 7.4 Key Findings
+### 7.4 Key Findings (Llama-3.3-70B)
 
 - **Tool-level defenses are the most cost-effective.** `recipient_locking` and `goal_verification` achieve ASR = 0.0 with zero net FPR overhead.
 - **`grounding_augmentation` leaks on additive `context_exfiltration` payloads** (ASR = 0.10 for that payload type) and introduces the highest FPR cost (+13%).
@@ -135,4 +135,44 @@ The baseline agent itself fails 20% of clean tasks (Tasks 5, 12, 14) due to inhe
 - **`all_combined` DR = 0.0 is expected**: the sanitizer handles all Phase 2 payloads before the agent acts, leaving no signal for the audit hook. The audit layer would activate against novel attacks that bypass the sanitizer.
 - **Recommended minimum stack:** `recipient_locking` + `goal_verification` + `audit_logging` — ASR = 0.0, zero net FPR cost, and DR coverage for post-hoc monitoring.
 
-> Full analysis in [`phase3_eval_report.md`](phase3_eval_report.md).
+---
+
+## 8. Cross-Model Results — Qwen3-235B-A22B-Instruct
+
+Phase 3 was re-run on Qwen/Qwen3-235B-A22B-Instruct to assess defense generalisability across models.
+
+### 8.1 Global Summary (Qwen3-235B)
+
+| Defense | ASR | TCR_inj | TCR_clean | FPR | DR |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `none` | 0.1944* | 0.5204 | 0.5556 | **0.4667** | — |
+| `input_sanitization` | 0.0333 | 0.5708 | 0.6000 | 0.4000 | — |
+| `recipient_locking` | 0.0611 | 0.4787 | 0.6167 | 0.4000 | — |
+| `grounding_augmentation` | 0.0333 | 0.5759 | 0.5333 | 0.4667 | — |
+| `audit_logging` | 0.2000 | 0.4778 | 0.5556 | 0.4667 | 0.2222 |
+| `goal_verification` | 0.0389 | 0.4407 | 0.5333 | 0.4667 | — |
+| `all_combined` | 0.0111 | 0.5759 | 0.5333 | 0.4667 | 0.0444 |
+
+*Low baseline ASR is partly due to the model failing to complete web-search tasks at all (47% clean failure rate), not genuine injection resistance.
+
+### 8.2 Head-to-Head: Llama-3.3-70B vs Qwen3-235B
+
+| Defense | Llama ASR | Qwen3-235B ASR | Llama FPR | Qwen3-235B FPR |
+| :--- | :--- | :--- | :--- | :--- |
+| `none` | 0.7556 | 0.1944 | 0.2000 | 0.4667 |
+| `input_sanitization` | **0.0000** | 0.0333 | 0.2667 | 0.4000 |
+| `recipient_locking` | **0.0000** | 0.0611 | 0.2000 | 0.4000 |
+| `grounding_augmentation` | 0.0333 | 0.0333 | 0.3333 | 0.4667 |
+| `goal_verification` | **0.0000** | 0.0389 | 0.2000 | 0.4667 |
+| `all_combined` | **0.0000** | 0.0111 | 0.3333 | 0.4667 |
+| `audit_logging` DR | **0.7778** | 0.2222 | — | — |
+
+### 8.3 Key Cross-Model Findings
+
+- **No defense achieves ASR=0.0 on Qwen3-235B.** Even `all_combined` has 2 leaks. Defenses are strictly less effective on this model.
+- **Baseline FPR=0.4667** (7/15 clean tasks fail) means utility cost of defenses cannot be meaningfully measured — the model can't reliably complete legitimate tasks regardless of defense.
+- **`goal_verification` has 7 leaks on Qwen3-235B** (vs 0 on Llama) — tool-level wrappers interact with model-specific tool-calling behavior and are not model-agnostic.
+- **`audit_logging` DR drops from 0.778 → 0.222** — attack patterns on Qwen3-235B produce weaker email-level signals, making post-hoc detection harder.
+- **Qwen3-235B is not recommended for this evaluation framework** until its ReAct web-search reliability is confirmed. Qwen3-32B shows better completion behavior (Phase 2: 0 errors, no web loops) and is the preferred Qwen3 comparison model.
+
+> Full cross-model analysis in [`phase3_eval_report.md`](phase3_eval_report.md) §9.
