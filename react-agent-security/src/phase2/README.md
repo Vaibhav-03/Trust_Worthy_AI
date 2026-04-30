@@ -710,12 +710,12 @@ Summary
 
 ### Key patterns to look for
 
-- **`system_message` style consistently outperforms `direct`** in ASR → authority framing increases susceptibility.
-- **`prefix` position outperforms `suffix`** in ASR → early framing dominates the agent's context window.
-- **`tool_redirect` has the highest TCR** of the attack types → stealth attacks that complete the task are harder to detect.
-- **`goal_hijacking` has the lowest TCR** → disruptive attacks are obvious but may have lower ASR if the agent partially resists.
-- **`context_exfiltration` has the highest ASR** → adding a data-forwarding step to an otherwise normal task is the most reliably exploitable vector.
-- **TCDR spikes on `goal_hijacking`** → the agent calls unexpected tools (or misses expected ones) when its goal is replaced.
+- **`direct` style is marginally more effective than `system_message`** in ASR (0.767 vs 0.744) → authority framing does not meaningfully increase susceptibility for this model; style has minimal overall impact.
+- **`prefix` and `suffix` achieve identical ASR (0.7556)** → position does not affect attack success rate. However, `suffix` injections cause zero tool-call deviation (TCDR = 0.000) and higher TCR, making them more stealthy and harder to detect.
+- **`goal_hijacking` has the highest ASR (0.9500)** → completely replacing the agent's task is the most reliably triggerable attack, beating context_exfiltration (0.600) and tool_redirect (0.717) by a wide margin.
+- **`context_exfiltration` has the highest TCR (0.6583)** → these are the stealthiest attacks; the agent completes the legitimate task while also forwarding data to the attacker.
+- **`tool_redirect` has the lowest TCR (0.5889)** → emails are rerouted to the attacker without the legitimate recipient receiving them, partially breaking the original task.
+- **TCDR is near-zero across all payload types** (max 0.05) → attacks are executed by redirecting existing tools, not by introducing new ones. Standard tool-call monitoring would miss the vast majority of attacks.
 
 ---
 
