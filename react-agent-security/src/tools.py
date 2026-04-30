@@ -86,6 +86,12 @@ def get_email_log_path() -> str:
     return os.path.join(log_dir, "sent_emails.jsonl")
 
 
+def get_blocked_email_log_path() -> str:
+    """Sibling of get_email_log_path() for the blocked-emails log."""
+    sent = get_email_log_path()
+    return os.path.join(os.path.dirname(sent) or ".", "blocked_emails.jsonl")
+
+
 @tool
 def email_sender(to: str, subject: str, body: str) -> str:
     """Send an email to a recipient with a subject and body."""

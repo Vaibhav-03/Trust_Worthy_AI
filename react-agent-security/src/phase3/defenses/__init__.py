@@ -26,11 +26,18 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+import json
+import os
+from datetime import datetime, timezone
+
+from langchain_core.tools import tool as lc_tool
+
 from src.phase3.defenses.audit import audit_post_run
-from src.phase3.defenses.goal_verifier import make_goal_verified_email_sender
+from src.phase3.defenses.goal_verifier import _violates_goal, make_goal_verified_email_sender
 from src.phase3.defenses.grounding import grounded_system_prompt
 from src.phase3.defenses.recipient_lock import make_recipient_locked_email_sender
 from src.phase3.defenses.sanitizer import sanitize_prompt
+from src.tools import get_blocked_email_log_path, get_email_log_path
 
 
 # A "task spec" is one entry from tasks.json (used by defenses that need
@@ -73,15 +80,70 @@ def _wrap_goal_verifier(tools: List[Any], task_spec: TaskSpec) -> List[Any]:
     return [verified if getattr(t, "name", "") == "email_sender" else t for t in tools]
 
 
+def _make_combined_email_sender(task_spec: TaskSpec):
+    """
+    Single email_sender replacement that applies goal-verification then
+    recipient-locking atomically.
+
+    Goal-verification runs first on the AGENT's original `to` address so
+    recipient-mismatch attacks are still caught before any rewriting. If the
+    call passes, the destination is pinned to the task's expected recipient
+    (recipient-locking). Both operations share one log entry, preventing the
+    double-replacement bug that occurs when the two wrappers are chained by
+    tool name.
+    """
+    expected_recipient = (task_spec or {}).get("expected_email_recipient", "")
+    locked = expected_recipient.strip()
+
+    @lc_tool("email_sender")
+    def _combined_sender(to: str, subject: str, body: str) -> str:
+        """Send an email to a recipient with a subject and body."""
+        verdict = _violates_goal(to, body, expected_recipient)
+        if verdict["violates"]:
+            entry = {
+                "timestamp":    datetime.now(timezone.utc).isoformat(),
+                "to":           to,
+                "subject":      subject,
+                "body":         body,
+                "blocked":      True,
+                "block_reason": verdict["reason"],
+            }
+            blocked_path = get_blocked_email_log_path()
+            with open(blocked_path, "a") as f:
+                f.write(json.dumps(entry) + "\n")
+            return (
+                f"Email NOT sent. Goal-verification policy rejected this "
+                f"call: {verdict['reason']}"
+            )
+
+        actual_to = locked if locked else to
+        redirected = locked != "" and (to or "").strip().lower() != locked.lower()
+        entry = {
+            "timestamp":        datetime.now(timezone.utc).isoformat(),
+            "to":               actual_to,
+            "subject":          subject,
+            "body":             body,
+            "attempted_to":     to,
+            "locked":           bool(locked),
+            "redirected_block": redirected,
+        }
+        log_path = get_email_log_path()
+        with open(log_path, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        if redirected:
+            return (
+                f"Email sent successfully to {actual_to}. "
+                f"(Note: requested recipient {to!r} was overridden by the "
+                f"recipient-lock policy.)"
+            )
+        return f"Email sent successfully to {actual_to}"
+
+    return _combined_sender
+
+
 def _wrap_combined(tools: List[Any], task_spec: TaskSpec) -> List[Any]:
-    """
-    For the all_combined defense, recipient_locking and goal_verification both
-    wrap email_sender. Compose them: the recipient lock runs first (it pins
-    the destination), then the goal verifier validates the body.
-    """
-    out = _wrap_recipient_lock(tools, task_spec)
-    out = _wrap_goal_verifier(out, task_spec)
-    return out
+    combined = _make_combined_email_sender(task_spec)
+    return [combined if getattr(t, "name", "") == "email_sender" else t for t in tools]
 
 
 def _combined_system_prompt(task_spec: TaskSpec) -> str:

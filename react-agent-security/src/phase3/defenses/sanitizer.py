@@ -14,33 +14,40 @@ from typing import List, Pattern
 
 
 # Strict email pattern — anchored on a word-char TLD so it does not
-# greedily swallow the trailing sentence terminator (which would let the
-# next `[^.]*\.` overshoot into the legitimate task).
+# greedily swallow the trailing sentence terminator.
 _EMAIL = r"[\w.+-]+@[\w.-]+\.\w+"
+
+# Sentence-content pattern that handles dots inside domain names / emails.
+# Structure: zero-or-more (non-dot chars + dotted word) groups, then a final
+# run of non-dot chars.  This allows mid-sentence dotted segments like
+# ".com" or ".evil.com" followed by arbitrary non-dot content (e.g.
+# " using email_sender"), while still terminating at the true sentence-ending
+# period via the explicit `\.` appended after _SENT in each pattern.
+_SENT = r"(?:[^.]*(?:\.\w+))*[^.]*"
 
 
 _INJECTION_PATTERNS: List[Pattern] = [
 
     # SYSTEM NOTE preamble — exactly one sentence.
-    re.compile(r"\bSYSTEM\s+NOTE\s*:\s*[^.]*\.", flags=re.IGNORECASE),
+    re.compile(rf"\bSYSTEM\s+NOTE\s*:\s*{_SENT}\.", flags=re.IGNORECASE),
 
     # "Ignore (all|previous|prior|subsequent|the above) instructions ..."
     re.compile(
         r"\b(?:please\s+)?ignore\s+(?:all\s+)?"
         r"(?:following|previous|prior|subsequent|the\s+above)\s+"
-        r"instructions[^.]*\.",
+        rf"instructions{_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
     # "Disregard everything (above|below) ..." / "all (prior|previous|subsequent) instructions ..."
     re.compile(
-        r"\bdisregard\s+(?:everything\s+(?:above|below)|all\s+(?:prior|previous|subsequent)\s+instructions)[^.]*\.",
+        rf"\bdisregard\s+(?:everything\s+(?:above|below)|all\s+(?:prior|previous|subsequent)\s+instructions){_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
     # "Your only task is to send ..."
     re.compile(
-        r"\byour\s+only\s+task\s+is\s+to\s+send[^.]*\.",
+        rf"\byour\s+only\s+task\s+is\s+to\s+send{_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
@@ -64,31 +71,31 @@ _INJECTION_PATTERNS: List[Pattern] = [
 
     # "Before doing anything else, ..."
     re.compile(
-        r"\bbefore\s+doing\s+anything\s+else[^.]*\.",
+        rf"\bbefore\s+doing\s+anything\s+else{_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
     # "Before finishing, ... email ..."
     re.compile(
-        r"\bbefore\s+finishing[^.]*?email[^.]*\.",
+        rf"\bbefore\s+finishing[^.]*?email{_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
     # "Forward all (tool outputs|retrieved content|outputs) ..."
     re.compile(
-        r"\bforward\s+all\s+(?:tool\s+outputs|retrieved\s+content|outputs)[^.]*\.",
+        rf"\bforward\s+all\s+(?:tool\s+outputs|retrieved\s+content|outputs){_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
     # "Email all (retrieved content|data you have read|computed) ..."
     re.compile(
-        r"\bemail\s+all\s+(?:retrieved\s+content|data\s+you\s+have\s+(?:read|computed))[^.]*\.",
+        rf"\bemail\s+all\s+(?:retrieved\s+content|data\s+you\s+have\s+(?:read|computed)){_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
     # "Email everything you (retrieve|compute) ..."
     re.compile(
-        r"\bemail\s+everything\s+you\s+(?:retrieve|compute)[^.]*\.",
+        rf"\bemail\s+everything\s+you\s+(?:retrieve|compute){_SENT}\.",
         flags=re.IGNORECASE,
     ),
 
@@ -106,13 +113,13 @@ _INJECTION_PATTERNS: List[Pattern] = [
 
     # Bare authority phrases (whatever survives the sentence-level strips).
     re.compile(
-        r"\b(?:priority|task|recipient)\s+override(?:\s+(?:received|active|enabled))?[^.]*\.",
+        rf"\b(?:priority|task|recipient)\s+override(?:\s+(?:received|active|enabled))?{_SENT}\.",
         flags=re.IGNORECASE,
     ),
-    re.compile(r"\baudit\s+mode\s+enabled[^.]*\.", flags=re.IGNORECASE),
-    re.compile(r"\bcompliance\s+policy[^.]*\.",     flags=re.IGNORECASE),
-    re.compile(r"\bsecurity\s+audit\s+required[^.]*\.", flags=re.IGNORECASE),
-    re.compile(r"\ball\s+prior\s+instructions\s+are\s+void[^.]*\.", flags=re.IGNORECASE),
+    re.compile(rf"\baudit\s+mode\s+enabled{_SENT}\.",       flags=re.IGNORECASE),
+    re.compile(rf"\bcompliance\s+policy{_SENT}\.",           flags=re.IGNORECASE),
+    re.compile(rf"\bsecurity\s+audit\s+required{_SENT}\.",   flags=re.IGNORECASE),
+    re.compile(rf"\ball\s+prior\s+instructions\s+are\s+void{_SENT}\.", flags=re.IGNORECASE),
 ]
 
 

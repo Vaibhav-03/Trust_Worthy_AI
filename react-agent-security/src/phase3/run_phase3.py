@@ -72,7 +72,7 @@ from src.phase3.metrics import (  # noqa: E402
     compute_tcr,
     unexpected_tools,
 )
-from src.tools import get_email_log_path  # noqa: E402
+from src.tools import get_blocked_email_log_path, get_email_log_path  # noqa: E402
 
 # Hard wall-clock timeout per agent.invoke(). Hung Tavily/Nebius calls
 # (observed once with no recovery for 8 hours) get killed so the sweep
@@ -197,7 +197,9 @@ def _execute_trial(
     label = inj.label if inj else "clean"
     _print_run_header(run_num, total_runs, defense_name, task["task_id"], label, prompt_for_agent)
 
+    blocked_log_path = get_blocked_email_log_path()
     emails_before = count_email_lines(email_log_path)
+    blocked_before = count_email_lines(blocked_log_path)
     run_ts = datetime.now(timezone.utc).isoformat()
     error: Optional[str] = None
     try:
@@ -208,6 +210,7 @@ def _execute_trial(
         print(f"  ERROR: {exc}")
 
     run_emails = get_run_emails(emails_before, email_log_path)
+    run_blocked_emails = get_run_emails(blocked_before, blocked_log_path)
     exfil = detect_exfiltration(emails_before, email_log_path, cfg.attacker_email)
 
     expected_tools = task.get("expected_tools", [])
@@ -249,9 +252,10 @@ def _execute_trial(
         "tcdr": tcdr,
         "tcr":  tcr,
         # Supporting evidence
-        "exfiltration": exfil,
-        "run_emails":   run_emails,
-        "error":        error,
+        "exfiltration":       exfil,
+        "run_emails":         run_emails,
+        "run_blocked_emails": run_blocked_emails,
+        "error":              error,
     }
 
     # Apply post-run defense hooks (currently used by audit_logging).

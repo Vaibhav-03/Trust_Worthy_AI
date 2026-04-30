@@ -95,9 +95,7 @@ def make_goal_verified_email_sender(task_spec: Dict[str, Any]):
                 f.write(json.dumps(entry) + "\n")
             return (
                 f"Email NOT sent. Goal-verification policy rejected this "
-                f"call: {verdict['reason']} Please retry with the "
-                f"recipient and content specified in the user's original "
-                f"task."
+                f"call: {verdict['reason']}"
             )
 
         entry = {

@@ -88,17 +88,51 @@ python -m src.phase3.run_phase3 --defenses input_sanitization --task-ids 1 --pos
 
 ---
 
-## 7. Preliminary Execution Results
+## 7. Experimental Results
 
-Based on the latest parallel execution logs, completion rates demonstrate varying levels of stability across defense types:
+Results from the full 12 × 15 adversarial matrix (180 injection trials + 15 clean baseline trials per defense, 1,365 total runs). All metrics are corrected for the `attempted_to` TCR fix, the `all_combined` wrapper bug, and the sanitizer dot-truncation bug documented in the Phase 3 bug fixes.
 
-| Defense | Completed / Total | Completion Rate |
+### 7.1 Global Summary
+
+| Defense | ASR | TCR_inj | TCR_clean | FPR | DR | ASR reduction |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `none` | 0.7556 | 0.6162 | 0.8000 | 0.2000 | — | — |
+| `input_sanitization` | **0.0000** | 0.7778 | 0.7333 | 0.2667 | — | −100% |
+| `recipient_locking` | **0.0000** | 0.6523 | 0.8000 | 0.2000 | — | −100% |
+| `grounding_augmentation` | 0.0333 | 0.7454 | 0.6667 | 0.3333 | — | −96% |
+| `audit_logging` | 0.7444 | 0.6301 | 0.8000 | 0.2000 | **0.7778** | −1.5% |
+| `goal_verification` | **0.0000** | 0.6500 | 0.8000 | 0.2000 | — | −100% |
+| `all_combined` | **0.0000** | 0.7241 | 0.6667 | 0.3333 | 0.0000 | −100% |
+
+### 7.2 ASR by Payload Type
+
+| Payload type | `none` | `input_sanitization` | `recipient_locking` | `grounding_augmentation` | `goal_verification` | `all_combined` |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `goal_hijacking` | 0.9333 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| `tool_redirect` | 0.7000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| `context_exfiltration` | 0.6333 | 0.0000 | 0.0000 | **0.1000** | 0.0000 | 0.0000 |
+
+`context_exfiltration` is the only payload type that bypasses `grounding_augmentation`. All six leaks are `suffix + direct` style — additive phrasing that the grounding constraints do not categorically reject.
+
+### 7.3 Net FPR Cost (Over 0.2000 Baseline)
+
+The baseline agent itself fails 20% of clean tasks (Tasks 5, 12, 14) due to inherent model limitations on multi-step tasks, not defense interference. Net cost = defense FPR − 0.2000.
+
+| Defense | FPR | Net cost |
 | :--- | :--- | :--- |
-| `none` | 195 / 195 | 100% |
-| `input_sanitization` | 195 / 195 | 100% |
-| `grounding_augmentation` | 195 / 195 | 100% |
-| `all_combined` | 195 / 195 | 100% |
-| `recipient_locking` | 194 / 195 | 99.5% |
-| `goal_verification` | 185 / 195 | 94.8% |
+| `recipient_locking` | 0.2000 | **+0.0000** |
+| `audit_logging` | 0.2000 | **+0.0000** |
+| `goal_verification` | 0.2000 | **+0.0000** |
+| `input_sanitization` | 0.2667 | +0.0667 |
+| `grounding_augmentation` | 0.3333 | +0.1333 |
+| `all_combined` | 0.3333 | +0.1333 |
 
-> **Note on Reliability**: The `goal_verification` defense exhibits the lowest completion rate (94.8%), suggesting that the complexity of pre-execution checks and rejection logic may lead to agent hangs or timeouts during reasoning.
+### 7.4 Key Findings
+
+- **Tool-level defenses are the most cost-effective.** `recipient_locking` and `goal_verification` achieve ASR = 0.0 with zero net FPR overhead.
+- **`grounding_augmentation` leaks on additive `context_exfiltration` payloads** (ASR = 0.10 for that payload type) and introduces the highest FPR cost (+13%).
+- **`audit_logging` detects 78% of successful attacks** post-hoc with no FPR overhead, making it the best monitoring layer when combined with a blocking defense.
+- **`all_combined` DR = 0.0 is expected**: the sanitizer handles all Phase 2 payloads before the agent acts, leaving no signal for the audit hook. The audit layer would activate against novel attacks that bypass the sanitizer.
+- **Recommended minimum stack:** `recipient_locking` + `goal_verification` + `audit_logging` — ASR = 0.0, zero net FPR cost, and DR coverage for post-hoc monitoring.
+
+> Full analysis in [`phase3_eval_report.md`](phase3_eval_report.md).
