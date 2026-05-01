@@ -38,10 +38,13 @@ Usage
 
 Output
 ------
-logs/phase3/results_<timestamp>.json   — all per-run records + aggregate summary
-logs/phase3/config_<timestamp>.json    — config snapshot (reproducibility)
-logs/sent_emails.jsonl                 — shared email audit log (appended)
-logs/blocked_emails.jsonl              — emails refused by goal_verification
+logs/phase3/<model_slug>/results_<model_slug>_<timestamp>.json — per-run records + summary
+logs/phase3/<model_slug>/config_<timestamp>.json               — config snapshot
+logs/sent_emails.jsonl                                         — shared email audit log
+logs/blocked_emails.jsonl                                      — emails refused by goal_verification
+
+The <model_slug> subdirectory is derived from cfg.model (last path segment, stripped of
+the "-Instruct" suffix) so multiple model runs do not collide in one directory.
 """
 from __future__ import annotations
 
@@ -270,9 +273,15 @@ def _execute_trial(
 # Top-level orchestrator
 # ---------------------------------------------------------------------------
 
+def _model_slug(model: str) -> str:
+    """Derive a filesystem-safe directory name from the model identifier."""
+    return model.split("/")[-1].replace("-Instruct", "")
+
+
 def run_phase3(cfg: Phase3Config) -> None:
     root = _project_root()
-    log_dir = os.path.join(root, cfg.log_dir)
+    model_slug = _model_slug(cfg.model)
+    log_dir = os.path.join(root, cfg.log_dir, model_slug)
     os.makedirs(log_dir, exist_ok=True)
 
     email_log_path = get_email_log_path()
@@ -309,7 +318,6 @@ def run_phase3(cfg: Phase3Config) -> None:
                 all_results.append(record)
 
     summary = aggregate_phase3(all_results)
-    model_slug = cfg.model.split("/")[-1].replace("-Instruct", "")
     output = {
         "meta": {
             "timestamp":              ts,
